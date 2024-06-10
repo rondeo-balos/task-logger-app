@@ -1,0 +1,21 @@
+{
+    "name": "rondeobalos/task-logger-app",
+    "description": "A task logger app for your work built with php, ajax & bootstrap",
+    "require": {
+        "illuminate/database": "^11.10",
+        "illuminate/events": "^11.10",
+        "slim/slim": "^4.13",
+        "slim/psr7": "^1.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "rondeobalos\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Rondeo Balos",
+            "email": "rondeobalos@gmail.com"
+        }
+    ]
+}
