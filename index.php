@@ -25,6 +25,7 @@ require_once 'connection.php';
             <div class="col-2">
                 <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark bg-body-tertiary shadow" style="width: 280px; min-height: 100vh">
                     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                        <img src="./logo.svg" class="me-2" width="50px" height="50px">
                         <span class="fs-4">Task Logger App</span>
                     </a>
                     <hr>
@@ -145,7 +146,7 @@ require_once 'connection.php';
             $( document ).on( 'change', '[name="tag"]', function(){
                 var title = $(this).attr( 'data-title' );
                 var color = $(this).attr( 'data-color' );
-                $(this).closest( '.dropdown.tags-dropdown' ).find( 'a' ).html( `<i class="fa fa-tag"></i> ${title}` ).addClass( `text-${color}` );
+                $(this).closest( '.dropdown.tags-dropdown' ).find( 'a' ).html( `<i class="fa fa-tag"></i> ${title}` ).attr( 'class', 'btn show' ).addClass( `text-${color}` );
             });
 
             const addDescription = function( val ) {
@@ -174,6 +175,11 @@ require_once 'connection.php';
                     console.log( 'description', $e );
                 }
             });
+            $(document).on( 'click', '.popover-body a[href*="api/tasks/"]', function(e) {
+                e.preventDefault();
+                var uri = $(this).attr( 'href' );
+                deleteData(uri);
+            });
             $( document ).on( 'keyup change paste', '.modal .description.cloned', function() {
                 var description = [];
                 $('.modal .description.cloned').each( function(index) {
@@ -182,10 +188,10 @@ require_once 'connection.php';
                 globalForm.find( '[name="description"]' ).val( JSON.stringify( description ) );
                 globalForm.find( '[name="description"]' ).change();
             });
-            const deleteData = function(ID) {
+            const deleteData = function(uri) {
                 $.ajax({
                     type: 'DELETE',
-                    url: `api/tasks/${ID}`,
+                    url: uri,
                     data: [],
                     success: function(data) {
                         generateData();
@@ -235,12 +241,19 @@ require_once 'connection.php';
                                 var start = $('<input type="hidden" name="start">').val( task.start );
                                 var end = $('<input type="hidden" name="end">').val( task.end );
                                 var total = $('<span id="timer">').text( formatElapsedTime(seconds) );
-                                var deleteBtn = $('<button class="btn btn-outline-danger btn-sm border-0">').attr('data-id', task.ID).html( '<i class="fa fa-trash">' );
+                                var deleteBtn = $('<button class="btn btn-outline-danger btn-sm border-0" role="button" type="button">')
+                                    .attr( 'data-bs-toggle', 'popover' )
+                                    .attr( 'data-bs-html', 'true' )
+                                    .attr( 'data-bs-trigger', 'focus' )
+                                    .attr( 'data-bs-title', 'Confirm' )
+                                    .attr( 'data-bs-content', `<a href="api/tasks/${task.ID}">Delete</a>` )
+                                    .attr('data-id', task.ID)
+                                    .html( '<i class="fa fa-trash">' );
                                 
-                                deleteBtn.on( 'click', function(e) {
+                                /*deleteBtn.on( 'click', 'a[href="#yes"]', function(e) {
                                     e.preventDefault();
                                     deleteData(task.ID);
-                                });
+                                });*/
 
                                 form.on( 'keyup change paste', 'input, select, textarea', function(){
                                     start.val( parseDateTimeLocalToSeconds(start_raw.val()) );
@@ -274,6 +287,8 @@ require_once 'connection.php';
                             table.find( '#dayTotal' ).html( `Total: <strong>${formatElapsedTime(totalSeconds)}</strong>` );
                             table.addClass( 'animate__animated animate__fadeIn' );
                             dataWrapper.append( table );
+
+                            new bootstrap.Popover( table.find( '[data-bs-toggle="popover"]' )[0], [] );
 
                             //$(document).find( 'input[name="tag"]:checked' ).change();
                         });
@@ -398,6 +413,10 @@ require_once 'connection.php';
     <style>
         .table {
             margin-bottom: 4px;
+        }
+        .popover-body {
+            text-align: center;
+            padding: 5px;
         }
     </style>
 </body>
