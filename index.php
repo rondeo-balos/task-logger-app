@@ -26,7 +26,7 @@ require_once 'connection.php';
                 <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark bg-body-tertiary shadow" style="width: 280px; min-height: 100vh">
                     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                         <img src="./logo.svg" class="me-2" width="50px" height="50px">
-                        <span class="fs-4">Task Logger App</span>
+                        <span class="fs-5" style="margin-left: -20px; margin-top: -5px;">Task Logger App</span>
                     </a>
                     <hr>
                     <ul class="nav nav-pills flex-column mb-auto">
@@ -43,7 +43,7 @@ require_once 'connection.php';
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="nav-link text-white">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#tagManager" class="nav-link text-white">
                                 <i class="fa-solid fa-tag"></i>
                                 Tags
                             </a>
@@ -419,5 +419,20 @@ require_once 'connection.php';
             padding: 5px;
         }
     </style>
+
+    <!-- Tags Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="tagManager" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="tagManager">Tags</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+        </div>
+    </div>
+    </div>
 </body>
 </html>
