@@ -32,14 +32,16 @@ $capsule->bootEloquent();
  * Installation
  */
 
-/*if( false ) {
+if( false ) {
     Capsule::schema()->create( 'tags', function($table) {
         $table->increments( 'ID' );
         $table->string( 'tag' );
         $table->string( 'color' );
         $table->timestamps();
     });
+}
 
+if( false ) {
     Capsule::schema()->create( 'tasks', function($table) {
         $table->increments( 'ID' );
         $table->string( 'title' );
@@ -49,4 +51,13 @@ $capsule->bootEloquent();
         $table->dateTime( 'end' );
         $table->timestamps();
     });
-}*/
+}
+
+if( false ) {
+    Capsule::schema()->create( 'notes', function($table) {
+        $table->increments( 'ID' );
+        $table->string( 'index' );
+        $table->string( 'content' );
+        $table->timestamps();
+    });
+}

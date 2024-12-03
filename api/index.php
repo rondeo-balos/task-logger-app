@@ -1,5 +1,6 @@
 <?php
 use Illuminate\Support\Carbon;
+use rondeobalos\model\Notes;
 define( 'ABSPATH', dirname(__FILE__) . '/' );
 
 require '../vendor/autoload.php';
@@ -15,6 +16,18 @@ use Slim\Factory\AppFactory;
 $app = AppFactory::create();
 $app->setBasePath("/api");
 
+/**
+ * Empty
+ */
+$app->get('/', function(Request $request, Response $response, $args) {
+    $payload = json_encode( [] );
+    $response->getBody()->write( $payload );
+    return $response->withHeader( 'Content-Type', 'application/json' );
+});
+
+/**
+ * Get all tags
+ */
 $app->get('/tags', function(Request $request, Response $response, $args) {
 
     $data = Tags::get( ['ID','tag','color']);
@@ -24,6 +37,9 @@ $app->get('/tags', function(Request $request, Response $response, $args) {
     return $response->withHeader( 'Content-Type', 'application/json' );
 });
 
+/**
+ * Insert tag
+ */
 $app->post('/tags', function(Request $request, Response $response, $args) {
     $data = $request->getParsedBody();
 
@@ -34,6 +50,22 @@ $app->post('/tags', function(Request $request, Response $response, $args) {
     return $response->withHeader( 'Content-Type', 'application/json' );
 });
 
+/**
+ * Delete tag by id
+ */
+$app->delete( '/tags/{ID}', function( Request $request, Response $response, $args ) {
+    $ID = $args['ID'];
+
+    Tags::where( 'ID', $ID )->delete();
+
+    $payload = json_encode( [$ID] );
+    $response->getBody()->write( $payload );
+    return $response->withHeader( 'Content-Type', 'application/json' );
+});
+
+/**
+ * Retrive all tasks
+ */
 $app->get('/tasks', function(Request $request, Response $response, $args) {
 
     // Fetch all tasks
@@ -59,6 +91,9 @@ $app->get('/tasks', function(Request $request, Response $response, $args) {
     return $response->withHeader( 'Content-Type', 'application/json' );
 });
 
+/**
+ * Insert new task
+ */
 $app->post('/tasks', function(Request $request, Response $response, $args) {
     $data = $request->getParsedBody();
 
@@ -69,6 +104,9 @@ $app->post('/tasks', function(Request $request, Response $response, $args) {
     return $response->withHeader( 'Content-Type', 'application/json' );
 });
 
+/**
+ * Delete task by id
+ */
 $app->delete( '/tasks/{ID}', function(Request $request, Response $response, $args) {
     $ID = $args['ID'];
 
@@ -79,6 +117,9 @@ $app->delete( '/tasks/{ID}', function(Request $request, Response $response, $arg
     return $response->withHeader( 'Content-Type', 'application/json' );
 });
 
+/**
+ * Update task
+ */
 $app->post( '/tasks/{ID}', function(Request $request, Response $response, $args) {
     $ID = $args['ID'];
     $data = $request->getParsedBody();
@@ -86,6 +127,58 @@ $app->post( '/tasks/{ID}', function(Request $request, Response $response, $args)
     unset($data['end_raw']);
     
     Tasks::where( 'ID', $ID )->update( $data );
+
+    $payload = json_encode( [$ID] );
+    $response->getBody()->write( $payload );
+    return $response->withHeader( 'Content-Type', 'application/json' );
+});
+
+/**
+ * All Notes
+ */
+$app->get('/notes', function(Request $request, Response $response, $args) {
+
+    $data = Notes::orderBy( 'ID' )->get();
+
+    $payload = json_encode( $data );
+    $response->getBody()->write( $payload );
+    return $response->withHeader( 'Content-Type', 'application/json' );
+});
+
+/**
+ * Insert note
+ */
+$app->post('/notes', function(Request $request, Response $response, $args) {
+    $data = $request->getParsedBody();
+
+    $ID = Notes::insertGetId( $data );
+
+    $payload = json_encode( [$ID] );
+    $response->getBody()->write( $payload );
+    return $response->withHeader( 'Content-Type', 'application/json' );
+});
+
+/**
+ * Delete Note by Id
+ */
+$app->delete( '/notes/{ID}', function( Request $request, Response $response, $args ) {
+    $ID = $args['ID'];
+
+    Notes::where( 'ID', $ID )->delete();
+
+    $payload = json_encode( [$ID] );
+    $response->getBody()->write( $payload );
+    return $response->withHeader( 'Content-Type', 'application/json' );
+});
+
+/**
+ * Update note
+ */
+$app->post( '/notes/{ID}', function(Request $request, Response $response, $args) {
+    $ID = $args['ID'];
+    $data = $request->getParsedBody();
+    
+    Notes::where( 'ID', $ID )->update( $data );
 
     $payload = json_encode( [$ID] );
     $response->getBody()->write( $payload );

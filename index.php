@@ -16,7 +16,8 @@ require_once 'connection.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <script src="https://zeptojs.com/zepto.min.js"></script>
+    <!--<script src="https://zeptojs.com/zepto.min.js"></script>-->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -37,15 +38,36 @@ require_once 'connection.php';
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="nav-link text-white">
-                                <i class="fa-regular fa-calendar-days"></i>
-                                Timesheet
-                            </a>
-                        </li>
-                        <li>
                             <a href="#" data-bs-toggle="modal" data-bs-target="#tagManager" class="nav-link text-white">
                                 <i class="fa-solid fa-tag"></i>
                                 Tags
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-bs-toggle="offcanvas" data-bs-target="#noteManager" class="nav-link text-white">
+                                <i class="fa-solid fa-note-sticky"></i>
+                                Notes
+                            </a>
+                        </li>
+                        <li class="my-2">
+                            <b>External Resource</b>
+                        </li>
+                        <li>
+                            <a href="/phpmyadmin" target="_blank" class="nav-link text-white">
+                                <i class="fa-solid fa-database"></i>
+                                phpMyAdmin
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/rondeo-balos" target="_blank" class="nav-link text-white">
+                                <i class="fa-brands fa-github"></i>
+                                Github
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://app.daily.dev/" target="_blank" class="nav-link text-white">
+                                <i class="fa-solid fa-code"></i>
+                                daily.dev
                             </a>
                         </li>
                     </ul>
@@ -146,7 +168,7 @@ require_once 'connection.php';
             $( document ).on( 'change', '[name="tag"]', function(){
                 var title = $(this).attr( 'data-title' );
                 var color = $(this).attr( 'data-color' );
-                $(this).closest( '.dropdown.tags-dropdown' ).find( 'a' ).html( `<i class="fa fa-tag"></i> ${title}` ).attr( 'class', 'btn show' ).addClass( `text-${color}` );
+                $(this).closest( '.dropdown.tags-dropdown' ).find( 'a' ).html( `<i class="fa fa-tag"></i> ${title}` ).attr( 'class', 'btn show text-nowrap' ).addClass( `text-${color}` );
             });
 
             const addDescription = function( val ) {
@@ -188,13 +210,13 @@ require_once 'connection.php';
                 globalForm.find( '[name="description"]' ).val( JSON.stringify( description ) );
                 globalForm.find( '[name="description"]' ).change();
             });
-            const deleteData = function(uri) {
+            const deleteData = function(uri, callback = function() { generateData(); }) {
                 $.ajax({
                     type: 'DELETE',
                     url: uri,
                     data: [],
                     success: function(data) {
-                        generateData();
+                        callback();
                     }
                 });
             }
@@ -241,11 +263,11 @@ require_once 'connection.php';
                                 var start = $('<input type="hidden" name="start">').val( task.start );
                                 var end = $('<input type="hidden" name="end">').val( task.end );
                                 var total = $('<span id="timer">').text( formatElapsedTime(seconds) );
-                                var deleteBtn = $('<button class="btn btn-outline-danger btn-sm border-0" role="button" type="button">')
+                                var deleteBtn = $(`<button id="${task.ID}" class="btn btn-outline-danger btn-sm border-0" role="button" type="button">`)
                                     .attr( 'data-bs-toggle', 'popover' )
                                     .attr( 'data-bs-html', 'true' )
                                     .attr( 'data-bs-trigger', 'focus' )
-                                    .attr( 'data-bs-title', 'Confirm' )
+                                    .attr( 'data-bs-title', `Confirm Deletion task:${task.ID}?` )
                                     .attr( 'data-bs-content', `<a href="api/tasks/${task.ID}">Delete</a>` )
                                     .attr('data-id', task.ID)
                                     .html( '<i class="fa fa-trash">' );
@@ -254,6 +276,7 @@ require_once 'connection.php';
                                     e.preventDefault();
                                     deleteData(task.ID);
                                 });*/
+                                $(deleteBtn).popover();
 
                                 form.on( 'keyup change paste', 'input, select, textarea', function(){
                                     start.val( parseDateTimeLocalToSeconds(start_raw.val()) );
@@ -267,7 +290,7 @@ require_once 'connection.php';
                                     });
                                 });
 
-                                form.append( $( '<div class="col-6">' ).append(title) )
+                                form.append( $( '<div class="col-5">' ).append(title) )
                                     .append( description )
                                     .append( descriptionBtn )
                                     .append( tag )
@@ -288,8 +311,7 @@ require_once 'connection.php';
                             table.addClass( 'animate__animated animate__fadeIn' );
                             dataWrapper.append( table );
 
-                            new bootstrap.Popover( table.find( '[data-bs-toggle="popover"]' )[0], [] );
-
+                            //new bootstrap.Popover( table.find( '[data-bs-toggle="popover"]' )[0], [] );
                             //$(document).find( 'input[name="tag"]:checked' ).change();
                         });
                     });
@@ -347,6 +369,62 @@ require_once 'connection.php';
 
                 return false;
             });
+
+            /**
+             * Notes
+             */
+            const retrieveNotes = function( container, callback = function(){} ) {
+                $.getJSON( '/api/notes', function(response) {
+                    container.empty();
+                    response.forEach(note => {
+                        var form = $(`<form method="POST" action="/api/notes/${note.ID}" class="d-flex flex-row gap-1 p-1 rounded hover-change">`);
+                        var input = $( `<input type="text" class="border-0 rounded-0 bg-transparent w-100 focus-ring focus-ring-dark" name="content" value="${note.content}" autocomplete="off" required>` );
+                        var deleteBtn = $(`<button id="${note.ID}" class="btn btn-outline-danger btn-sm border-0" role="button" type="button">`)
+                            .attr( 'data-bs-toggle', 'popover' )
+                            .attr( 'data-bs-html', 'true' )
+                            .attr( 'data-bs-trigger', 'focus' )
+                            .attr( 'data-bs-title', `Confirm Deletion note:${note.ID}?` )
+                            .attr( 'data-bs-content', `<a href="api/notes/${note.ID}">Delete</a>` )
+                            .attr('data-id', note.ID)
+                            .html( '<i class="fa fa-trash">' );
+
+                        $(deleteBtn).popover();
+
+                        form.on( 'change', 'input', function(){
+                            updateData( form, function() {
+                                retrieveNotes( container );
+                            });
+                        });
+
+                        form.append( '<input type="hidden" name="index" value="null">' ).append( input ).append( deleteBtn );
+                        container.append( form );
+                    });
+
+                    callback();
+                });
+            };
+
+            $(document).on( 'click', '.popover-body a[href*="api/notes/"]', function(e) {
+                e.preventDefault();
+                var uri = $(this).attr( 'href' );
+                deleteData(uri, function() { 
+                    retrieveNotes( $('#allNotes') );
+                });
+            });
+
+            retrieveNotes( $('#allNotes') );
+
+            let noteForm = $( '#newNote' );
+            noteForm.on( 'submit', function(e){
+                e.preventDefault();
+                updateData( noteForm, function() {
+                    retrieveNotes( $('#allNotes') );
+                    noteForm.find( 'input' ).val( '' );
+                });
+            });
+            noteForm.on( 'change', 'input', function() {
+                noteForm.submit();
+            })
         });
 
         function formatDateTime(timestamp) {
@@ -418,21 +496,38 @@ require_once 'connection.php';
             text-align: center;
             padding: 5px;
         }
+        .hover-change:hover {
+            background-color: #fff3;
+        }
     </style>
 
     <!-- Tags Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="tagManager" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="tagManager">Tags</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                ...
+    <div class="modal fade" id="tagManager" tabindex="-1" aria-labelledby="tagManager" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="tagManager">Tags</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Notes Off canvas -->
+    <div class="offcanvas offcanvas-end w-50" data-bs-scroll="true" data-bs-backdrop="true" tabindex="-1" id="noteManager" aria-labelledby="noteManagerLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="noteManagerLabel">Notes</h5>
+        </div>
+        <div class="offcanvas-body">
+            <div id="allNotes"></div>
+            <form method="POST" action="api/notes" id="newNote" class="p-1">
+                <input type="hidden" name="index" value="null" />
+                <input type="text" class="border-0 rounded-0 bg-transparent w-100 focus-ring focus-ring-dark" name="content" placeholder="Type anything..." />
+            </form>
+        </div>
     </div>
 </body>
 </html>
