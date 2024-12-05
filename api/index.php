@@ -64,6 +64,20 @@ $app->delete( '/tags/{ID}', function( Request $request, Response $response, $arg
 });
 
 /**
+ * Edit tag
+ */
+$app->post('/tags/{ID}', function(Request $request, Response $response, $args) {
+    $ID = $args['ID'];
+    $data = $request->getParsedBody();
+
+    Tags::where( 'ID', $ID )->update( $data );
+
+    $payload = json_encode( [$ID] );
+    $response->getBody()->write( $payload );
+    return $response->withHeader( 'Content-Type', 'application/json' );
+});
+
+/**
  * Retrive all tasks
  */
 $app->get('/tasks', function(Request $request, Response $response, $args) {

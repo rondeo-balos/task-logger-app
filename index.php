@@ -11,7 +11,7 @@ require_once 'connection.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Logger App</title>
+    <title>Task Logger</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
@@ -21,13 +21,13 @@ require_once 'connection.php';
 </head>
 <body>
 
-    <div class="conainer-fluid">
+    <div>
         <div class="d-flex flex-row justify-content-evenly">
             <div class="col-2">
                 <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark bg-body-tertiary shadow" style="width: 280px; min-height: 100vh">
                     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                         <img src="./logo.svg" class="me-2" width="50px" height="50px">
-                        <span class="fs-5" style="margin-left: -20px; margin-top: -5px;">Task Logger App</span>
+                        <span class="fs-5" style="margin-left: -20px; margin-top: -5px;">Task Logger</span>
                     </a>
                     <hr>
                     <ul class="nav nav-pills flex-column mb-auto">
@@ -126,6 +126,7 @@ require_once 'connection.php';
                     </table>
                 </div>
 
+                <!-- Task Description modal -->
                 <div class="modal fade" id="modalDescription" tabindex="-1">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -143,6 +144,59 @@ require_once 'connection.php';
                         </div>
                     </div>
                 </div>
+
+                <!-- Tags Modal -->
+                <div class="modal fade" id="tagManager" tabindex="-1" aria-labelledby="tagManager" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="tagManager">Tags</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="tagsContainer" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                            <div class="modal-footer justify-content-start">
+                                <strong>New Tag</strong>
+                                <form id="newTag" class="d-flex flex-row my-3 gap-3" action="api/tags" method="POST">
+                                    <input type="text" name="tag" class="form-control w-100" placeholder="New Tag">
+                                    <select name="color" class="form-select">
+                                        <option value="light">Select Color</option>
+                                        <option value="primary" class="text-primary">Primary</option>
+                                        <option value="primary-emphasis" class="text-primary-emphasis">Primary Emphasis</option>
+                                        <option value="secondary" class="text-secondary">Secondary</option>
+                                        <option value="secondary-emphasis" class="text-secondary-emphasis">Secondary Emphasis</option>
+                                        <option value="success" class="text-success">Success</option>
+                                        <option value="success-emphasis" class="text-success-emphasis">Success Emphasis</option>
+                                        <option value="danger" class="text-danger">Danger</option>
+                                        <option value="danger-emphasis" class="text-danger-emphasis">Danger Emphasis</option>
+                                        <option value="warning" class="text-warning">Warning</option>
+                                        <option value="warning-emphasis" class="text-warning-emphasis">Warning Emphasis</option>
+                                        <option value="info" class="text-info">Info</option>
+                                        <option value="info-emphasis" class="text-info-emphasis">Info Emphasis</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary"><i class="fa fa-plus-circle"></i></button>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Off canvas -->
+                <div class="offcanvas offcanvas-end w-50" data-bs-scroll="true" data-bs-backdrop="true" tabindex="-1" id="noteManager" aria-labelledby="noteManagerLabel">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title" id="noteManagerLabel">Notes</h5>
+                    </div>
+                    <div class="offcanvas-body">
+                        <div id="allNotes"></div>
+                        <form method="POST" action="api/notes" id="newNote" class="p-1">
+                            <input type="hidden" name="index" value="null" />
+                            <input type="text" class="border-0 rounded-0 bg-transparent w-100 focus-ring focus-ring-dark" name="content" placeholder="Type anything..." />
+                        </form>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -150,13 +204,25 @@ require_once 'connection.php';
     <script>
         $( document ).ready(function($){
             const generateTags = function( dropdown, idAfter = '', currVal = 0, callback = function(){} ) {
+                var tagsContainer = $( '#tagsContainer' );
+
                 $.getJSON( '/api/tags', function(response) {
                     dropdown.empty();
+                    tagsContainer.empty();
+
                     response.forEach(tag => {
                         var input = $( `<input type="radio" class="btn-check" name="tag" data-title="${tag.tag}" data-color="${tag.color}" id="tag-${tag.tag}-${idAfter}" value="${tag.ID}" autocomplete="off" required>` );
-                        var label = $( `<label class="btn btn-sm btn-outline-${tag.color} m-1" for="tag-${tag.tag}-${idAfter}">${tag.tag}</label>` );
-
+                        var label = $( `<label class="btn btn-sm btn-outline-${tag.color.replace('-emphasis', '')} m-1" for="tag-${tag.tag}-${idAfter}">${tag.tag}</label>` );
                         dropdown.append( input ).append( label );
+
+                        var editorForm = $( `<form class="flex-shrink-1 w-auto min-w-" action="api/tags/${tag.ID}" method="POST">` );
+                        var editor = $( `<input type="text" class="btn btn-outline-${tag.color.replace('-emphasis', '')}" style="width: ${tag.tag.length*16}px;" size="1" name="tag" data-title="${tag.tag}" value="${tag.tag}">` );
+                        editor.on( 'change', function() {
+                            updateData( editorForm, function() {
+                                generateData();
+                            });
+                        });
+                        tagsContainer.append( editorForm.append( editor ) );
                     });
 
                     callback();
@@ -168,7 +234,16 @@ require_once 'connection.php';
             $( document ).on( 'change', '[name="tag"]', function(){
                 var title = $(this).attr( 'data-title' );
                 var color = $(this).attr( 'data-color' );
-                $(this).closest( '.dropdown.tags-dropdown' ).find( 'a' ).html( `<i class="fa fa-tag"></i> ${title}` ).attr( 'class', 'btn show text-nowrap' ).addClass( `text-${color}` );
+                $(this).closest( '.dropdown.tags-dropdown' ).find( 'a' ).html( `<i class="fa fa-tag"></i> ${title}` ).attr( 'class', 'btn show text-nowrap btn-sm text-sm' ).addClass( `text-${color}` );
+            });
+
+            let tagForm = $( '#newTag' );
+            tagForm.on( 'submit', function(e){
+                e.preventDefault();
+                updateData( tagForm, function() {
+                    tagForm.trigger( 'reset' );
+                    generateData();
+                });
             });
 
             const addDescription = function( val ) {
@@ -253,7 +328,7 @@ require_once 'connection.php';
                                 var description = $('<input type="hidden" name="description">').val( task.description );
                                 var descriptionBtn = $( '<button type="button" role="button" class="btn btn-outline-primary border-0 rounded-0" data-bs-toggle="modal" data-bs-target="#modalDescription">' ).html( '<i class="fa fa-list"></i>' );
                                 var tag = $( '<div class="dropdown tags-dropdown col-1">' )
-                                    .append( '<a href="#" class="btn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside"><i class="fa fa-tag"></i> Tag</a>' )
+                                    .append( '<a href="#" class="btn btn-sm text-sm" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside"><i class="fa fa-tag"></i> Tag</a>' )
                                     .append( '<div class="dropdown-menu p-4" style="min-width: 300px">' );
                                 generateTags( tag.find( '.dropdown-menu' ), task.ID, task.tag, function(){
                                     tag.find( `[value="${task.tag}"]` ).attr( 'checked', true ).change();
@@ -362,7 +437,8 @@ require_once 'connection.php';
                     generateData();
                     $('#start').toggleClass('d-none');
                     $('#end').toggleClass('d-none');
-                    form[0].reset();
+                    form.trigger("reset");
+                    form.find( '[type="hidden"]' ).val('');
                     clearInterval( interval );
                     $( '#timer' ).text( '00:00:00' )
                 });
@@ -499,35 +575,9 @@ require_once 'connection.php';
         .hover-change:hover {
             background-color: #fff3;
         }
+        .min-w- {
+            min-width: 1px;
+        }
     </style>
-
-    <!-- Tags Modal -->
-    <div class="modal fade" id="tagManager" tabindex="-1" aria-labelledby="tagManager" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="tagManager">Tags</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    ...
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notes Off canvas -->
-    <div class="offcanvas offcanvas-end w-50" data-bs-scroll="true" data-bs-backdrop="true" tabindex="-1" id="noteManager" aria-labelledby="noteManagerLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="noteManagerLabel">Notes</h5>
-        </div>
-        <div class="offcanvas-body">
-            <div id="allNotes"></div>
-            <form method="POST" action="api/notes" id="newNote" class="p-1">
-                <input type="hidden" name="index" value="null" />
-                <input type="text" class="border-0 rounded-0 bg-transparent w-100 focus-ring focus-ring-dark" name="content" placeholder="Type anything..." />
-            </form>
-        </div>
-    </div>
 </body>
 </html>
